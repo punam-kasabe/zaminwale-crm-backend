@@ -144,8 +144,11 @@ router.post("/", async (req, res) => {
     if (paidByCustomerId && paidByCustomerId !== data.customerId) {
       const oldCustomer = await Customer.findOne({ customerId: paidByCustomerId });
       if (oldCustomer) {
+        // Mark old customer record as transferred
         oldCustomer.crossPaymentFlag = `Transferred to ${data.customerId}`;
         await oldCustomer.save();
+
+        // Set link on new customer
         data.paidByCustomerId = paidByCustomerId;
       }
     }
@@ -153,6 +156,7 @@ router.post("/", async (req, res) => {
     const newCustomer = new Customer(data);
     await newCustomer.save();
 
+    // 🧾 Log the action
     await ActivityLog.create({
       user,
       action: "Added Customer",
@@ -183,6 +187,7 @@ router.put("/:id", async (req, res) => {
       if (oldCustomer) {
         oldCustomer.crossPaymentFlag = `Transferred to ${updatedData.customerId}`;
         await oldCustomer.save();
+
         updatedData.paidByCustomerId = paidByCustomerId;
       }
     }

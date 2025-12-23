@@ -27,7 +27,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* ---------------- 🟢 Get Active Customers LIST ---------------- */
+/* ---------------- 🟢 Get Active Customers ---------------- */
 router.get("/active", async (req, res) => {
   try {
     const activeCustomers = await Customer.find({
@@ -38,20 +38,6 @@ router.get("/active", async (req, res) => {
   } catch (err) {
     console.error("Error fetching active customers:", err);
     res.status(500).json({ error: "Failed to fetch active customers" });
-  }
-});
-
-/* ---------------- 🟢 NEW — Get Active Customers COUNT (Dashboard) ---------------- */
-router.get("/active/count", async (req, res) => {
-  try {
-    const count = await Customer.countDocuments({
-      status: { $regex: /^Active Customer$/i }
-    });
-
-    res.status(200).json({ count });
-  } catch (err) {
-    console.error("Error counting active customers:", err);
-    res.status(500).json({ error: "Failed to count active customers" });
   }
 });
 
@@ -107,7 +93,7 @@ router.put("/:id", isAdmin, async (req, res) => {
     if (!existingCustomer)
       return res.status(404).json({ error: "Customer not found" });
 
-    // Ensure installments are properly formatted
+    // ✅ Ensure installments are properly formatted
     if (req.body.installments && Array.isArray(req.body.installments)) {
       req.body.installments = req.body.installments.map((inst, index) => ({
         installmentNo: inst.installmentNo || index + 1,
@@ -124,7 +110,7 @@ router.put("/:id", isAdmin, async (req, res) => {
       }));
     }
 
-    // Save edit history before update
+    // 🕓 Save edit history before update
     existingCustomer.editHistory = existingCustomer.editHistory || [];
     existingCustomer.editHistory.push({
       date: new Date(),

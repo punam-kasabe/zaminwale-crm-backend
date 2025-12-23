@@ -17,21 +17,21 @@ const installmentSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "Active Customer",
-        "For Feit",
-        "Cancelled",
-        "Refunded",
-        "SALEDEED DONE",
-        "BOOKING CANCELLED",
-        "Cheque Bounce",
-        "Bounced",
-        "Pending",
-        "Paid",
-        "Cheque not clear",
+      "Active Customer",
+              "Cancelled",
+              "Refunded",
+              "SALEDEED DONE",
+              "BOOKING CANCELLED",
+              "Cheque Bounce",
+              "Bounced",
+              "Pending",
+              "Paid",
+              "Cheque not clear"
       ],
-      default: "Paid",
+      default: "Pending",
     },
 
+    // 🔹 Cross-Payment Handling
     paidByCustomerId: { type: String, default: "" },
     crossPaymentFlag: { type: Boolean, default: false },
   },
@@ -58,6 +58,7 @@ const customerSchema = new mongoose.Schema(
 
     customerId: { type: String, required: true, unique: true },
 
+    // 🔹 Linking (Old ↔ New Customer)
     oldCustomerId: { type: String, default: "" },
     isTransferred: { type: Boolean, default: false },
 
@@ -85,7 +86,7 @@ const customerSchema = new mongoose.Schema(
     stampDutyCharges: { type: Number, default: 0 },
     mouCharge: { type: Number, default: 0 },
 
-    // 🔹 Location & Bank
+    // 🔹 Location & Bank Details
     location: { type: String, default: "" },
     village: { type: String, default: "" },
     bank: { type: String, default: "" },
@@ -95,31 +96,27 @@ const customerSchema = new mongoose.Schema(
     chequeNo: { type: String, default: "" },
     chequeDate: { type: String, default: "" },
     remark: { type: String, default: "" },
-    phase: { type: String, default: "" },
 
-    // 🔹 Dates
-    dueDate: { type: String, default: "" },
+    // ---------------- Dates Section ----------------
+    dueDate: { type: String, default: "" },   // ✔ Next Due Date
     clearDate: { type: String, default: "" },
 
-    // 🔹 Staff Assignment (FIXED & SAFE)
+    // 🔹 Staff Assignment (Multi-select fields)
     callingBy: {
       type: [String],
       default: [],
-      set: (val) => {
-        if (Array.isArray(val)) return val;
-        if (typeof val === "string" && val.trim() !== "") return [val];
-        return [];
-      },
+      set: (val) => (Array.isArray(val) ? val : JSON.parse(val || "[]")),
+    },
+    siteVisitBy: {
+      type: [String],
+      default: [],
+      set: (val) => (Array.isArray(val) ? val : JSON.parse(val || "[]")),
     },
 
     attendingBy: {
       type: [String],
       default: [],
-      set: (val) => {
-        if (Array.isArray(val)) return val;
-        if (typeof val === "string" && val.trim() !== "") return [val];
-        return [];
-      },
+      set: (val) => (Array.isArray(val) ? val : JSON.parse(val || "[]")),
     },
 
     siteVisitBy: {
@@ -135,14 +132,10 @@ const customerSchema = new mongoose.Schema(
     closingBy: {
       type: [String],
       default: [],
-      set: (val) => {
-        if (Array.isArray(val)) return val;
-        if (typeof val === "string" && val.trim() !== "") return [val];
-        return [];
-      },
+      set: (val) => (Array.isArray(val) ? val : JSON.parse(val || "[]")),
     },
 
-    // 🔹 Installments & History
+    // 🔹 Installments & Edit History
     installments: { type: [installmentSchema], default: [] },
     editHistory: { type: [editHistorySchema], default: [] },
 
@@ -151,14 +144,13 @@ const customerSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Active Customer",
-        "For Feit",
         "Cancelled",
         "Refunded",
         "SALEDEED DONE",
         "BOOKING CANCELLED",
         "Cheque Bounce",
         "Bounced",
-        "Cheque not clear",
+           "Cheque not clear"
       ],
       default: "Active Customer",
     },
@@ -166,6 +158,7 @@ const customerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Index for faster search
 customerSchema.index({ customerId: 1, name: 1, phone: 1 });
 
 export default mongoose.model("Customer", customerSchema);
